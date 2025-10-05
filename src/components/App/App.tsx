@@ -71,7 +71,7 @@ const handlePageChange = (event: { selected: number }) => {
           onSelect={handleImageClick}
           pageCount={totalPages}
           onPageChange={handlePageChange}
-          currentPage={currentPage}
+          forcePage={currentPage -1}
         />
       )}
 

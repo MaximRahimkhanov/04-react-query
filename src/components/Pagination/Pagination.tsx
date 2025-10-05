@@ -10,21 +10,21 @@ interface PaginatedItemsProps {
   onSelect: (movie: Movie) => void;
   pageCount: number;
   onPageChange: (event: { selected: number }) => void;
-  currentPage: number;
+  forcePage: number;
  }
 
-function PaginatedItems({ items, onSelect, pageCount, onPageChange, currentPage }: PaginatedItemsProps) {
+function PaginatedItems({ items, onSelect, pageCount, onPageChange, forcePage }: PaginatedItemsProps) {
   return (
     <>
       <ReactPaginate
         breakLabel="..."
         nextLabel="→"
-         onPageChange={onPageChange}
+        onPageChange={({ selected }) => onPageChange({ selected })}
 
         pageRangeDisplayed={5}
         marginPagesDisplayed={1}
         pageCount={pageCount}
-        forcePage={currentPage - 1}
+        forcePage={forcePage}
         previousLabel="←"
         renderOnZeroPageCount={null}
         containerClassName={css.pagination}
