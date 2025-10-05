@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { Toaster } from "react-hot-toast";
+import { useEffect, useState } from "react";
+import toast, { Toaster } from "react-hot-toast";
 import SearchBar from "../SearchBar/SearchBar";
 import ErrorMessage from "../ErrorMessage/ErrorMessage";
 
 import MovieModal from "../MovieModal/MovieModal";
 import { fetchMovies } from "../../services/movieService";
 import type { Movie } from "../../types/movie";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery , keepPreviousData} from "@tanstack/react-query";
 import type { ResponseData } from "../../services/movieService";
 import PaginatedItems from "../Pagination/Pagination";
 import Loader from "../Loader/Loader";
@@ -14,17 +14,27 @@ import Loader from "../Loader/Loader";
 function App() {
   const [query, setQuery] = useState('');
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
-const [currentPage, setCurrentPage] = useState(1);
-  const { data, isLoading, isError } = useQuery<ResponseData>({
-    queryKey: ['Movie', query, currentPage],
-    queryFn: () => fetchMovies(query, currentPage),
-    retry: false,
-    enabled: !!query.trim(),
-  });
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  const { data, isLoading, isError, isSuccess, isFetching } = useQuery<ResponseData, Error>({
+  queryKey: ['movie', query, currentPage],
+  queryFn: () => fetchMovies(query, currentPage),
+  retry: false,
+  enabled: !!query.trim(),
+  placeholderData: keepPreviousData,
+});
+
+
+   useEffect(() => {
+    if (isSuccess && data?.results?.length === 0) {
+      toast.error("No movies found for your request.");
+    }
+  }, [isSuccess, data]);
 
 
   const handleSubmit = (value: string) => {
     setQuery(value);
+    setCurrentPage(1);
   };
 
   const handleImageClick = (movie: Movie) => {
@@ -35,13 +45,18 @@ const [currentPage, setCurrentPage] = useState(1);
     setSelectedMovie(null);
   };
 
+const handlePageChange = (event: { selected: number }) => {
+  setCurrentPage(event.selected + 1);
+};
+
+
   const totalPages = data?.total_pages ?? 0;
 
   return (
     <div>
       <SearchBar onSubmit={handleSubmit} />
       <Toaster />
-{isLoading && <Loader />}
+{isFetching && !isLoading && <Loader />}
 
       {!isLoading && !isError && data?.results?.length === 0 && (
   <ErrorMessage message="No movies found for your request." />
@@ -55,7 +70,7 @@ const [currentPage, setCurrentPage] = useState(1);
           itemsPerPage={6}
           onSelect={handleImageClick}
           pageCount={totalPages}
-          onPageChange={setCurrentPage}
+          onPageChange={handlePageChange}
           currentPage={currentPage}
         />
       )}

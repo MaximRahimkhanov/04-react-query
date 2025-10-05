@@ -6,8 +6,6 @@ export type ResponseData = {
   results: Movie[];
   total_pages: number;
   total_results: number;
- 
-
 };
 
 const VITE_TMDB_TOKEN = import.meta.env.VITE_TMDB_TOKEN as string;
