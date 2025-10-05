@@ -1,6 +1,16 @@
-import styles from "./ErrorMessage.module.css"
+import css from './ErrorMessage.module.css';
 
-export default function ErrorMessage() {
-    return <p className={styles.text}>There was an error, please try again...</p>
-
+interface Props {
+  message?: string;
 }
+
+function ErrorMessage({ message = "Something went wrong. Please try again." }: Props) {
+  return (
+    <div className={css.wrapper}>
+      <span className={css.icon}>❌</span>
+      <p className={css.text}>{message}</p>
+    </div>
+  );
+}
+
+export default ErrorMessage;

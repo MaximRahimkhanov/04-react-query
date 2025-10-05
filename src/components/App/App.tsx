@@ -1,39 +1,30 @@
 import { useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 import SearchBar from "../SearchBar/SearchBar";
-import MovieGrid from "../MovieGrid/MovieGrid";
 import ErrorMessage from "../ErrorMessage/ErrorMessage";
-import Loader from "../Loader/Loader";
+
 import MovieModal from "../MovieModal/MovieModal";
-import fetchMovies from "../../services/movieService";
+import { fetchMovies } from "../../services/movieService";
 import type { Movie } from "../../types/movie";
+import { useQuery } from "@tanstack/react-query";
+import type { ResponseData } from "../../services/movieService";
+import PaginatedItems from "../Pagination/Pagination";
+import Loader from "../Loader/Loader";
 
 function App() {
-  const [movies, setMovies] = useState<Movie[]>([]);
-  const [error, setError] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [query, setQuery] = useState('');
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+const [currentPage, setCurrentPage] = useState(1);
+  const { data, isLoading, isError } = useQuery<ResponseData>({
+    queryKey: ['Movie', query, currentPage],
+    queryFn: () => fetchMovies(query, currentPage),
+    retry: false,
+    enabled: !!query.trim(),
+  });
 
-  const getQuery = async (query: string) => {
-    setIsLoading(true);
-    setError(false);
-    setMovies([]);
 
-    try {
-      const data = await fetchMovies(query);
-
-      if (data.length === 0) {
-        toast.error("No movies found for your request.");
-        return;
-      }
-
-      setMovies(data);
-    } catch {
-      toast.error("Server error. Please try again.");
-      setError(true);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleSubmit = (value: string) => {
+    setQuery(value);
   };
 
   const handleImageClick = (movie: Movie) => {
@@ -44,19 +35,29 @@ function App() {
     setSelectedMovie(null);
   };
 
+  const totalPages = data?.total_pages ?? 0;
+
   return (
     <div>
-      <SearchBar onSubmit={getQuery} />
+      <SearchBar onSubmit={handleSubmit} />
       <Toaster />
+{isLoading && <Loader />}
 
-      {isLoading ? (
-        <Loader />
-      ) : error ? (
-        <ErrorMessage />
-      ) : (
-        movies.length > 0 && (
-          <MovieGrid movies={movies} onSelect={handleImageClick} />
-        )
+      {!isLoading && !isError && data?.results?.length === 0 && (
+  <ErrorMessage message="No movies found for your request." />
+)}
+
+
+
+      {data?.results && data.results.length > 0 && (
+        <PaginatedItems
+          items={data.results}
+          itemsPerPage={6}
+          onSelect={handleImageClick}
+          pageCount={totalPages}
+          onPageChange={setCurrentPage}
+          currentPage={currentPage}
+        />
       )}
 
       {selectedMovie && (
