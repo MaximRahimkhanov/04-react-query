@@ -1,8 +1,7 @@
-
 import ReactPaginate from "react-paginate";
 import MovieGrid from "../MovieGrid/MovieGrid";
 import type { Movie } from "../../types/movie";
-import css from "./Pagination.module.css"
+import css from "./Pagination.module.css";
 
 interface PaginatedItemsProps {
   items: Movie[];
@@ -11,29 +10,35 @@ interface PaginatedItemsProps {
   pageCount: number;
   onPageChange: (event: { selected: number }) => void;
   currentPage: number;
- }
+  forcePage: number;
+}
 
-function PaginatedItems({ items, onSelect, pageCount, onPageChange, currentPage }: PaginatedItemsProps) {
+function PaginatedItems({
+  items,
+  onSelect,
+  pageCount,
+  onPageChange,
+  forcePage,
+}: PaginatedItemsProps) {
   return (
     <>
+      
       <ReactPaginate
         breakLabel="..."
         nextLabel="→"
-         onPageChange={onPageChange}
-
+        onPageChange={onPageChange}
         pageRangeDisplayed={5}
         marginPagesDisplayed={1}
         pageCount={pageCount}
-        forcePage={currentPage - 1}
         previousLabel="←"
         renderOnZeroPageCount={null}
         containerClassName={css.pagination}
         activeClassName={css.active}
+        forcePage={forcePage}
       />
       <MovieGrid movies={items} onSelect={onSelect} />
     </>
   );
 }
-
 
 export default PaginatedItems;
